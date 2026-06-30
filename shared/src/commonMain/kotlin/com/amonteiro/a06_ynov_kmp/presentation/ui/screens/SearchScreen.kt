@@ -44,8 +44,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.amonteiro.a06_ynov_kmp.di.apiModule
+import com.amonteiro.a06_ynov_kmp.di.viewModelModule
 import com.amonteiro.a06_ynov_kmp.domain.model.Weather
 import com.amonteiro.a06_ynov_kmp.presentation.ui.MyError
 import com.amonteiro.a06_ynov_kmp.presentation.ui.WeatherGallery
@@ -53,6 +54,8 @@ import com.amonteiro.a06_ynov_kmp.presentation.ui.theme.AppTheme
 import com.amonteiro.a06_ynov_kmp.presentation.viewmodel.MainViewModel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.KoinApplicationPreview
+import org.koin.compose.viewmodel.koinViewModel
 
 @Preview(showBackground = true, showSystemUi = true)
 @Preview(
@@ -63,11 +66,15 @@ import org.jetbrains.compose.resources.stringResource
 fun SearchScreenPreview() {
     //Il faut remplacer NomVotreAppliTheme par le thème de votre application
     //Utilisé par exemple dans MainActivity.kt sous setContent {...}
-    AppTheme {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            val mainViewModel = MainViewModel()
-            mainViewModel.loadFakeData(true, "Un message d'erreur")
-            SearchScreen(modifier = Modifier.padding(innerPadding), mainViewModel = mainViewModel)
+    KoinApplicationPreview(application = {
+        modules(viewModelModule, apiModule)
+    }) {
+        AppTheme {
+            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                val mainViewModel = koinViewModel<MainViewModel>()
+                mainViewModel.loadFakeData(true, "Un message d'erreur")
+                SearchScreen(modifier = Modifier.padding(innerPadding), mainViewModel = mainViewModel)
+            }
         }
     }
 }
@@ -81,17 +88,21 @@ fun SearchScreenPreview() {
 fun SearchScreenPreviewNoData() {
     //Il faut remplacer NomVotreAppliTheme par le thème de votre application
     //Utilisé par exemple dans MainActivity.kt sous setContent {...}
-    AppTheme {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            val mainViewModel = MainViewModel()
-            //mainViewModel.loadFakeData()
-            SearchScreen(modifier = Modifier.padding(innerPadding), mainViewModel = mainViewModel)
+    KoinApplicationPreview(application = {
+        modules(viewModelModule, apiModule)
+    }) {
+        AppTheme {
+            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                val mainViewModel = koinViewModel<MainViewModel>()
+                //mainViewModel.loadFakeData()
+                SearchScreen(modifier = Modifier.padding(innerPadding), mainViewModel = mainViewModel)
+            }
         }
     }
 }
 
 @Composable
-fun SearchScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = viewModel{ MainViewModel() }) {
+fun SearchScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = koinViewModel<MainViewModel>()) {
 
 
     Column(

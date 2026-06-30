@@ -1,54 +1,34 @@
 package com.amonteiro.a06_ynov_kmp.data.remote
 
 import com.amonteiro.a06_ynov_kmp.BuildConfig
+import com.amonteiro.a06_ynov_kmp.di.initKoin
 import com.amonteiro.a06_ynov_kmp.domain.model.Weather
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
 import io.ktor.http.isSuccess
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import org.koin.mp.KoinPlatform
 
 //Suspend sera expliqué dans le chapitre des coroutines
 suspend fun main() {
 
-    val weathers = WeatherApiDataSource.loadWeathers("Nice")
+    initKoin()
+
+    val apiDataSource = KoinPlatform.getKoin().get<WeatherApiDataSource>()
+    val weathers = apiDataSource.loadWeathers("Nice")
     for (w in weathers) {
         println(w.getResume())
     }
 
 }
 
-object WeatherApiDataSource {
-    private const val API_URL =
-        "https://www.amonteiro.fr/api/weather?cityname="
+class WeatherApiDataSource(val client : HttpClient) {
 
-    //Création et réglage du client
-    private val client = HttpClient {
-        install(Logging) {
-            //(import io.ktor.client.plugins.logging.Logger)
-            logger = object : Logger {
-                override fun log(message: String) {
-                    println(message)
-                }
-            }
-            level = LogLevel.INFO  // TRACE, HEADERS, BODY, etc.
-        }
-        install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true }, contentType = ContentType.Any)
-        }
-        install(HttpTimeout) {
-            requestTimeoutMillis = 5000
-        }
-        //engine { proxy = ProxyBuilder.http("monproxy:1234") }
+    companion object {
+        private const val API_URL =
+            "https://www.amonteiro.fr/api/weather?cityname="
     }
 
     suspend fun loadWeathers(cityName: String): List<Weather> {

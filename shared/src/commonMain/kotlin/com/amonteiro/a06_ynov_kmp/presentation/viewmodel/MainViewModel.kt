@@ -3,16 +3,22 @@ package com.amonteiro.a06_ynov_kmp.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amonteiro.a06_ynov_kmp.data.remote.WeatherApiDataSource
+import com.amonteiro.a06_ynov_kmp.di.initKoin
 import com.amonteiro.a06_ynov_kmp.domain.model.Weather
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import org.koin.mp.KoinPlatform
 
 
 suspend fun main() {
-    val viewModel = MainViewModel()
+
+    initKoin()
+
+    val viewModel = KoinPlatform.getKoin().get<MainViewModel>()
+
     viewModel.loadWeathers("Paris")
 
     while (viewModel.runInProgress.value) {
@@ -26,7 +32,7 @@ suspend fun main() {
 
 }
 
-class MainViewModel : ViewModel() {
+class MainViewModel(val weatherApiDataSource: WeatherApiDataSource ) : ViewModel() {
     //MutableStateFlow est une donnée observable
     val dataList = MutableStateFlow(emptyList<Weather>())
     val runInProgress = MutableStateFlow(false)
@@ -78,11 +84,12 @@ class MainViewModel : ViewModel() {
 
     fun loadWeathers(cityName: String) {
         runInProgress.value = true
+        errorMessage.value = ""
 
         //tache asynchrone
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                dataList.value = WeatherApiDataSource.loadWeathers(cityName)
+                dataList.value = weatherApiDataSource.loadWeathers(cityName)
             } catch (e: Exception) {
                 e.printStackTrace()
                 errorMessage.value = e.message ?: "Une erreur est survenue"

@@ -18,6 +18,8 @@ dependencies {
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
+
+    implementation("io.insert-koin:koin-android:4.1.+")
 }
 
 android {
